@@ -13,14 +13,15 @@ class Mailer implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
+    protected $message;
     /**
      * Create a new job instance.
      *
      * @return void
      */
-    public function __construct()
+    public function __construct($message)
     {
-        //
+        $this->message = $message;
     }
 
     /**
@@ -30,6 +31,6 @@ class Mailer implements ShouldQueue
      */
     public function handle()
     {
-        //
+        info($this->message);
     }
 }
