@@ -20,8 +20,9 @@ Route::get('/', function () {
 Auth::routes();
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+Route::post('/send', [App\Http\Controllers\HomeController::class, 'action'])->name('clientes');
 
-Route::get('/send', function () {
+Route::get('/job', function () {
     App\Jobs\Mailer::dispatch("test message");
 });
 
