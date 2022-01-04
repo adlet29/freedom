@@ -32,7 +32,11 @@ class HomeController extends Controller
     {
         $this->validation($request);
         $file_path = $this->save_file(storage_path('app/files/'), $request->file('file'));
-        dd($file_path);
+        $data = [];
+        $data['subject'] = $request['subject'];
+        $data['message'] = $request['message'];
+        $data['file_to_path'] = $file_path;
+        \App\Jobs\Mailer::dispatch($data);
     }
 
     /**
@@ -59,8 +63,7 @@ class HomeController extends Controller
     {
         $v = $request->validate([
             'subject' => 'required|max:255',
-            'message' => 'required',
-            'email' => 'required'
+            'message' => 'required'
         ]);
         return $v;
     }
