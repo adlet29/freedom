@@ -39,7 +39,7 @@ class HomeController extends Controller
      */
     public function index()
     {
-        $home = (Auth::user()->is_manager) ? 'home' : 'clientes';
+        $home = (Auth::user()->is_manager) ? 'manager' : 'clientes';
         return view($home);
     }
 
