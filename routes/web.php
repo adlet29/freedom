@@ -20,5 +20,5 @@ Route::get('/', function () {
 Auth::routes();
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
-Route::post('/send', [App\Http\Controllers\HomeController::class, 'action'])->name('clientes');
+Route::post('/send', [App\Http\Controllers\HomeController::class, 'createRequest'])->name('clientes');
 
