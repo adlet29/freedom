@@ -15,14 +15,16 @@ class Mailer implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
+    protected $receiver_email;
     protected $detail;
     /**
      * Create a new job instance.
      *
      * @return void
      */
-    public function __construct($data)
+    public function __construct($receiver_email, $data)
     {
+        $this->receiver_email = $receiver_email;
         $this->detail = $data;
     }
 
@@ -33,7 +35,11 @@ class Mailer implements ShouldQueue
      */
     public function handle()
     {
-        $email = new SendMessage($this->detail);
-        Mail::to('adletassanov26@gmail.com')->send($email);
+        if ($this->receiver_email != '') { 
+            Mail::to($this->receiver_email)
+            ->send(new SendMessage($this->detail));
+        } else {
+            info('Не найден получатель');
+        }
     }
 }

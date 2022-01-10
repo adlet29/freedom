@@ -4,9 +4,14 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Ticket;
+use App\Models\User;
 
 class HomeController extends Controller
 {
+
+    private $email; // manager email
+
     /**
      * Create a new controller instance.
      *
@@ -15,8 +20,18 @@ class HomeController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
+        $this->email = $this->getManagerEmailAddress();
     }
 
+    private function getManagerEmailAddress()
+    {
+        $managers = User::select('email')->where('is_manager', true)->get();
+        $email_address = '';
+        if (sizeof($managers)) {
+            $email_address = $managers[0]->email; // first manager email
+        }
+        return $email_address;
+    }
     /**
      * Show the application dashboard.
      *
@@ -31,19 +46,45 @@ class HomeController extends Controller
     public function action(Request $request)
     {
         $this->validation($request);
-        $file_path = $this->save_file(storage_path('app/files/'), $request->file('file'));
-        $data = [];
-        $data['subject'] = $request['subject'];
-        $data['message'] = $request['message'];
-        $data['file_to_path'] = $file_path;
-        \App\Jobs\Mailer::dispatch($data);
+        $client_id = Auth::user()->id;
+        if ($this->checkTime($client_id)) {
+            $file_path = $this->uploadFile(storage_path('app/files/'), $request->file('file'));
+            $data = [
+                'subject' => $request->subject, 
+                'message' => $request->message, 
+                'user_id' => $client_id,
+                'file_path' => $file_path,
+            ];
+            $ticket_id = Ticket::create($data)->id;
+            if ($ticket_id > 0) {
+                $data['ticket_id'] = $ticket_id;
+                $data['user_name'] = Auth::user()->name;
+                //\App\Jobs\Mailer::dispatch($this->email, $data);
+            }
+        }
+
+        return redirect('/home');
+    }
+
+    private function checkTime($id)
+    {
+        $check = true;
+        $tickets = Ticket::where('user_id', $id)->orderBy('created_at', 'desc')->first();
+        if ($tickets) {
+            $h = 86400;
+            $time = strtotime((string)$tickets->created_at);
+            if (time() < $time + $h) {
+                $check = false;
+            }
+        }
+        return $check;
     }
 
     /**
      * save file => path
      * @return string||null
      */
-    private function save_file($path, $file = null)
+    private function uploadFile($path, $file = null)
     {
         $file_path = null;
         if (!empty($file)) {

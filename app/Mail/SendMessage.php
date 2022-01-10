@@ -11,9 +11,11 @@ class SendMessage extends Mailable
 {
     use Queueable, SerializesModels;
 
+    protected $ticket;
+    protected $userName;
     protected $title;
     protected $message;
-    protected $file_to_path;
+    protected $fileToPath;
 
     /**
      * Create a new message instance.
@@ -22,9 +24,11 @@ class SendMessage extends Mailable
      */
     public function __construct($data)
     {
+        $this->ticket = $data['ticket_id']
+        $this->userName = $data['user_name'];
         $this->title = $data['subject'];
         $this->message = $data['message'];
-        $this->file_to_path = $data['file_to_path'];
+        $this->fileToPath = $data['file_path'];
     }
 
     /**
@@ -34,9 +38,10 @@ class SendMessage extends Mailable
      */
     public function build()
     {
-        $result = $mail = $this->subject($this->title)->view('emails.requests', ['text' => $this->message]);
-        if (isset($this->file_to_path) && file_exists($this->file_to_path)) {
-            $result = $mail->attach($this->file_to_path);
+        $result = $mail = $this->subject("#$this->ticket - $this->title ($this->userName)")
+                                ->view('emails.requests', ['text' => $this->message]);
+        if (isset($this->fileToPath) && file_exists($this->fileToPath)) {
+            $result = $mail->attach($this->fileToPath);
         }
 
         return $result;
