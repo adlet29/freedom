@@ -41,8 +41,15 @@ class HomeController extends Controller
      */
     public function index()
     {
-        $page = (Auth::user()->is_manager) ? 'manager' : 'clients';
-        return view($page);
+        $page = Auth::user()->is_manager ? 'manager' : 'clients';
+        $list = [];
+        if ($page == 'manager') {
+            $list = Ticket::join('users', 'tickets.user_id', '=', 'users.id')
+            ->where('is_manager', false)
+            ->get(['users.name', 'users.email', 'tickets.*']);
+        }
+        
+        return view($page, ['tickets' => $list]);
     }
 
     public function createRequest(Request $request)
@@ -66,7 +73,7 @@ class HomeController extends Controller
             if ((int)$ticket_id > 0) {
                 $data['ticket_id'] = $ticket_id;
                 $data['user_name'] = Auth::user()->name;
-                //\App\Jobs\Mailer::dispatch($this->email, $data);
+                \App\Jobs\Mailer::dispatch($this->email, $data);
             }
         }
 
