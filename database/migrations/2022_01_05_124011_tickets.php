@@ -19,6 +19,7 @@ class Tickets extends Migration
             $table->string('message');
             $table->string('file_path')->nullable();
             $table->integer('user_id');
+            $table->boolean('viewed')->nullable();
             $table->timestamps();
         });
     }

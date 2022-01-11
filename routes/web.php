@@ -21,4 +21,5 @@ Auth::routes();
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 Route::post('/send', [App\Http\Controllers\HomeController::class, 'createRequest'])->name('clientes');
+Route::get('/edit/{id}', [App\Http\Controllers\HomeController::class, 'editRequest'])->name('manager');
 

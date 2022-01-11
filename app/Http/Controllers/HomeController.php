@@ -46,7 +46,9 @@ class HomeController extends Controller
         if ($page == 'manager') {
             $list = Ticket::join('users', 'tickets.user_id', '=', 'users.id')
             ->where('is_manager', false)
-            ->get(['users.name', 'users.email', 'tickets.*']);
+            ->whereNull('viewed')
+            ->orderBy('id', 'DESC')
+            ->paginate(8, ['users.name', 'users.email', 'tickets.*']);
         }
         
         return view($page, ['tickets' => $list]);
@@ -93,6 +95,15 @@ class HomeController extends Controller
         return view('clients', $alert);
     }
 
+    public function editRequest($ticket_id)
+    {
+        $Obj = Ticket::find($ticket_id);
+        $Obj->viewed = true;
+        $Obj->save();
+
+        return redirect('/home');
+    }
+
     private function checkTime($id)
     {
         $is_check = true;
@@ -125,6 +136,5 @@ class HomeController extends Controller
         }
         return $file_path;
     }
-
 
 }

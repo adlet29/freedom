@@ -24,7 +24,7 @@ class SendMessage extends Mailable
      */
     public function __construct($data)
     {
-        $this->ticket = $data['ticket_id']
+        $this->ticket = $data['ticket_id'];
         $this->userName = $data['user_name'];
         $this->title = $data['subject'];
         $this->message = $data['message'];
