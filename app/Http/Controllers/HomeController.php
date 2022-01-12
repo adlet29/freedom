@@ -9,8 +9,6 @@ use App\Models\User;
 
 class HomeController extends Controller
 {
-
-    private $email; // manager email
     private $filesDir;
 
     /**
@@ -21,18 +19,7 @@ class HomeController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
-        $this->email = $this->getManagerEmailAddress();
-        $this->filesDir = storage_path('app/files/');
-    }
-
-    private function getManagerEmailAddress()
-    {
-        $managers = User::select('email')->where('is_manager', true)->get();
-        $email_address = '';
-        if (sizeof($managers)) {
-            $email_address = $managers[0]->email; // first manager email
-        }
-        return $email_address;
+        $this->filesDir = storage_path('app/files');
     }
     /**
      * Show the application dashboard.
@@ -41,83 +28,42 @@ class HomeController extends Controller
      */
     public function index()
     {
-        $page = Auth::user()->is_manager ? 'manager' : 'clients';
-        $list = [];
-        if ($page == 'manager') {
-            $list = Ticket::join('users', 'tickets.user_id', '=', 'users.id')
-            ->where('is_manager', false)
-            ->whereNull('viewed')
-            ->orderBy('id', 'DESC')
-            ->paginate(8, ['users.name', 'users.email', 'tickets.*']);
-        }
-        
-        return view($page, ['tickets' => $list]);
+        return view('clients');
     }
 
-    public function createRequest(Request $request)
+    public function create(Request $request)
     {
         $request->validate([
             'subject' => 'required|max:255',
             'message' => 'required'
         ]);
 
-        $client_id = Auth::user()->id;
-        $retData = $this->checkTime($client_id);
-        if ($retData['check']) {
+        $last_ticket_for_a_day = Auth::user()->tickets()->where('created_at', '>=', now()->subDay())->first();
+        if($last_ticket_for_a_day){
             $file_path = $this->uploadFile($request->file('file'));
-            $data = [
+
+            $ticket = Auth::user()->tickets()->create([
                 'subject' => $request->subject, 
-                'message' => $request->message, 
-                'user_id' => $client_id,
+                'message' => $request->message,
                 'file_path' => $file_path,
-            ];
-            $ticket_id = Ticket::create($data)->id;
-            if ((int)$ticket_id > 0) {
-                $data['ticket_id'] = $ticket_id;
-                $data['user_name'] = Auth::user()->name;
-                \App\Jobs\Mailer::dispatch($this->email, $data);
-            }
+            ]);
+            
+            $managers = User::manager()->get();
+            $managers->each->notify(new \App\Notifications\NewTicket($ticket));
+            
+            session()->flash('success', 'Заявка успешно создана!');
+        }
+        else{
+            $diffMinutes = now()->diffInMinutes($last_ticket_for_a_day->created_at->addDay());
+            session()->flash(
+                'info', "Следующая отправка через ".
+                    trans_choice('time.minutes', $diffMinutes, [
+                        'minutes' => $diffMinutes
+                    ])
+            );
         }
 
-        if ($retData['check'] && (int)$ticket_id > 0) {
-            $alert = [
-                'status' => 'success',
-                'message' => "Заявка #$ticket_id успешно создано"
-            ];
-        }
-        if (!$retData['check']) {
-            $alert = [
-                'status' => 'info',
-                'message' => "Следующая отправка после " . $retData['date_deadline']
-            ];
-        }
-
-        return view('clients', $alert);
-    }
-
-    public function editRequest($ticket_id)
-    {
-        $Obj = Ticket::find($ticket_id);
-        $Obj->viewed = true;
-        $Obj->save();
-
-        return redirect('/home');
-    }
-
-    private function checkTime($id)
-    {
-        $is_check = true;
-        $tickets = Ticket::where('user_id', $id)->orderBy('created_at', 'desc')->first();
-        if ($tickets) {
-            $deadline = strtotime((string)$tickets->created_at . '+ 24 hours');
-            if (time() < $deadline) {
-                $is_check = false;
-            }
-        }
-        return [
-            'check' => $is_check,
-            'date_deadline' => (!$is_check) ? date('H:i - d.m.Y', $deadline) : null
-        ];
+        return view('clients');
     }
 
     /**

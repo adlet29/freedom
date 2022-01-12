@@ -6,14 +6,14 @@
     <div class="row justify-content-center">
       
         <div class="col-md-8">
-            @if (isset($status) && $status == 'success')
+            @if (session()->has('success'))
                 <div class="alert alert-success" role="alert">
-                    {{ $message }}
+                    {{ session('success') }}
                 </div>  
             @endif
-            @if (isset($status) && $status == 'info')
+            @if (session()->has('info'))
                 <div class="alert alert-info" role="alert">
-                    {{ $message }}
+                    {{ session('info') }}
                 </div>  
             @endif
 
@@ -21,7 +21,7 @@
                 
                 <div class="card-header">{{ __('Welcome Clientes') }}</div>
                 <div class="card-body">
-                    <form method="POST" action="/send" enctype="multipart/form-data">
+                    <form method="POST" action="{{ route('ticket.create') }}" enctype="multipart/form-data">
                         @csrf
 
                         <div class="row mb-3">

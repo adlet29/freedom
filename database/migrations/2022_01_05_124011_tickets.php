@@ -16,11 +16,15 @@ class Tickets extends Migration
         Schema::create('tickets', function (Blueprint $table) {
             $table->id();
             $table->string('subject');
-            $table->string('message');
+            $table->text('message');
             $table->string('file_path')->nullable();
-            $table->integer('user_id');
-            $table->boolean('viewed')->nullable();
+            // $table->boolean('viewed')->nullable();
+            $table->boolean('viewed')->default(0);
             $table->timestamps();
+
+            // $table->integer('user_id');
+            $table->foreignId('user_id')->nullable()
+                                                ->constrained();
         });
     }
 
