@@ -19,15 +19,15 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach($tickets as $data)
+                            @foreach($tickets as $ticket)
                                 <tr>
-                                    <th scope="row">{{ $data->id }}</th>
-                                    <td>{{ $data->subject }}</td>
-                                    <td>{{ $data->message }}</td>
-                                    <td>{{ $data->name }}</td>
-                                    <td>{{ $data->email }}</td>
+                                    <th scope="row">{{ $ticket->id }}</th>
+                                    <td>{{ $ticket->subject }}</td>
+                                    <td>{{ $ticket->message }}</td>
+                                    <td>{{ $ticket->user->name }}</td>
+                                    <td>{{ $ticket->user->email }}</td>
                                     <td class="text-center">
-                                        <a href="/edit/{{ $data->id }}" class="btn btn-success">
+                                        <a href="{{ route('manager.ticket.status_change', $ticket->id) }}" class="btn btn-success">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-eye-fill" viewBox="0 0 16 16">
                                                 <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/>
                                                 <path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8zm8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"/>

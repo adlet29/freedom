@@ -13,13 +13,17 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
+// Route::get('/', function () {
+//     return view('welcome');
+// });
 
 Auth::routes();
 
-Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
-Route::post('/send', [App\Http\Controllers\HomeController::class, 'createRequest'])->name('clientes');
-Route::get('/edit/{id}', [App\Http\Controllers\HomeController::class, 'editRequest'])->name('manager');
+Route::get('/', [App\Http\Controllers\HomeController::class, 'index'])->name('index');
+Route::post('/create', [App\Http\Controllers\HomeController::class, 'create'])->name('ticket.create');
+
+Route::prefix('manager')->middleware('manager')->group(function () {
+    Route::get('/', [App\Http\Controllers\ManagerController::class, 'index'])->name('manager.index');
+    Route::put('/ticket/{id}', [App\Http\Controllers\ManagerController::class, 'status_change'])->name('manager.ticket.status_change');
+});
 

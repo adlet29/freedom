@@ -20,7 +20,7 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
-        'is_manager',
+        'is_manager', // Не лучшая реализация, лучше реализовать систему ролей
         'password',
     ];
 
@@ -41,5 +41,21 @@ class User extends Authenticatable
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'is_manager' => 'boolean'
     ];
+
+    public function scopeManager($query)
+    {
+        return $query->where('is_manager', true);
+    }
+
+    public function scopeUser($query)
+    {
+        return $query->where('is_manager', false);
+    }
+
+    public function tickets()
+    {
+        return $this->hasMany(Ticket::class);
+    }
 }
